@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/gesetze-app/static/css/main.df3ce557.css",
-    "main.js": "/gesetze-app/static/js/main.d0e1805c.js",
-    "static/js/787.36469dc7.chunk.js": "/gesetze-app/static/js/787.36469dc7.chunk.js",
-    "index.html": "/gesetze-app/index.html",
-    "main.df3ce557.css.map": "/gesetze-app/static/css/main.df3ce557.css.map",
-    "main.d0e1805c.js.map": "/gesetze-app/static/js/main.d0e1805c.js.map",
-    "787.36469dc7.chunk.js.map": "/gesetze-app/static/js/787.36469dc7.chunk.js.map"
+    "main.css": "/static/css/main.df3ce557.css",
+    "main.js": "/static/js/main.e459dfc6.js",
+    "static/js/787.36469dc7.chunk.js": "/static/js/787.36469dc7.chunk.js",
+    "index.html": "/index.html",
+    "main.df3ce557.css.map": "/static/css/main.df3ce557.css.map",
+    "main.e459dfc6.js.map": "/static/js/main.e459dfc6.js.map",
+    "787.36469dc7.chunk.js.map": "/static/js/787.36469dc7.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.df3ce557.css",
-    "static/js/main.d0e1805c.js"
+    "static/js/main.e459dfc6.js"
   ]
 }
