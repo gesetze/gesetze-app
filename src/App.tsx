@@ -6,7 +6,7 @@ function App() {
 	return (
 		<BrowserRouter>
 			<Routes>
-				<Route path="/" element={<GesetzView />} />
+				<Route path="*" element={<GesetzView />} />
 			</Routes>
 		</BrowserRouter>
 	);
