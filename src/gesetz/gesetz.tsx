@@ -57,7 +57,11 @@ export const Gesetz = ({
 }) => {
 	const [data, setData] = useState([]);
 	useEffect(() => {
-		getData(gesetzIndex).then((d) => setData(d));
+		if (gesetzIndex) {
+			getData(gesetzIndex).then((d) => setData(d));
+		} else {
+			setData([]);
+		}
 	}, [gesetzIndex]);
 
 	return <RowVirtualizerDynamic rows={data} normIndex={normIndex} />;
