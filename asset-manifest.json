@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/gesetze-app/static/css/main.df3ce557.css",
-    "main.js": "/gesetze-app/static/js/main.492ce3ea.js",
+    "main.js": "/gesetze-app/static/js/main.b2bf070a.js",
     "static/js/787.36469dc7.chunk.js": "/gesetze-app/static/js/787.36469dc7.chunk.js",
     "index.html": "/gesetze-app/index.html",
     "main.df3ce557.css.map": "/gesetze-app/static/css/main.df3ce557.css.map",
-    "main.492ce3ea.js.map": "/gesetze-app/static/js/main.492ce3ea.js.map",
+    "main.b2bf070a.js.map": "/gesetze-app/static/js/main.b2bf070a.js.map",
     "787.36469dc7.chunk.js.map": "/gesetze-app/static/js/787.36469dc7.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.df3ce557.css",
-    "static/js/main.492ce3ea.js"
+    "static/js/main.b2bf070a.js"
   ]
 }
