@@ -10,7 +10,7 @@ export const SearchBar = ({
 	onQueryChange: (quer: string) => any;
 }) => {
 	return (
-		<AppBar position="sticky">
+		<AppBar position="fixed">
 			<Toolbar style={{ justifyContent: "center" }}>
 				<Paper
 					sx={{
