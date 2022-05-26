@@ -1,6 +1,6 @@
 import "./App.css";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { GesetzView } from "./gesetz/gesetz";
+import { GesetzView } from "./gesetz/gesetz-view";
 
 function App() {
 	return (
