@@ -1,7 +1,8 @@
+import { Skeleton } from "@mui/material";
 import { useEffect, useState } from "react";
 import { RowVirtualizerDynamic } from "./row-virtualizer";
 import { SearchBar } from "./search-bar";
-import gesetzeJson from "../gesetze.json";
+import { formatQuery, parseSearchQuery } from "./search-query-parser";
 
 function getData(gesetzIndex: string) {
 	return fetch(`data/${gesetzIndex}.json`, {
@@ -12,38 +13,32 @@ function getData(gesetzIndex: string) {
 	}).then((response) => response.json());
 }
 
-function cleanNormQuery(query: string) {
-	return query.trim().toLowerCase();
-}
-
 export function GesetzView() {
+	const [tempQuery, setTempQuery] = useState("1000 BGB");
 	const [query, setQuery] = useState("1000 BGB");
 	const [normIndex, setNormIndex] = useState("");
-	const [gesetzIndex, setGesetzIndex] = useState("");
+	const [gesetzId, setGesetzId] = useState("");
+
 	useEffect(() => {
-		var reg = /^(Art\.?|§+)\s+/i;
-		const splitted = query.trim().replace(reg, "").split(" ");
-		if (splitted.length === 1) {
-			if (gesetzeJson.hasOwnProperty(cleanNormQuery(splitted[0]))) {
-				setGesetzIndex(splitted[0]);
-				setNormIndex("");
-			} else {
-				setNormIndex(splitted[0]);
-			}
-		}
-		if (splitted.length === 2) {
-			const gesetzeQuery = cleanNormQuery(splitted[1]);
-			if (gesetzeJson.hasOwnProperty(gesetzeQuery)) {
-				setNormIndex(splitted[0]);
-				setGesetzIndex((gesetzeJson as { [_: string]: string })[gesetzeQuery]);
-			}
+		const queryObj = parseSearchQuery(query);
+		console.log(queryObj);
+		if (queryObj) {
+			// set gesetzId if not set
+			queryObj.gesetzId = queryObj.gesetzId || gesetzId;
+			setNormIndex(queryObj.normId || "");
+			setGesetzId(queryObj.gesetzId);
+			setTempQuery(formatQuery(queryObj));
 		}
 	}, [query]);
 
 	return (
 		<div>
-			<SearchBar onQueryChange={setQuery} searchQuery={query} />
-			<Gesetz normIndex={normIndex} gesetzIndex={gesetzIndex} />
+			<SearchBar
+				onQueryChange={setTempQuery}
+				searchQuery={tempQuery}
+				onExecuteQuery={() => setQuery(tempQuery)}
+			/>
+			<Gesetz normIndex={normIndex} gesetzIndex={gesetzId} />
 		</div>
 	);
 }
@@ -64,5 +59,17 @@ export const Gesetz = ({
 		}
 	}, [gesetzIndex]);
 
-	return <RowVirtualizerDynamic rows={data} normIndex={normIndex} />;
+	if (data) {
+		return <RowVirtualizerDynamic rows={data} normIndex={normIndex} />;
+	} else {
+		return (
+			<div style={{ margin: "2em" }}>
+				<Skeleton />
+				<Skeleton />
+				<Skeleton />
+				<Skeleton />
+				<Skeleton />
+			</div>
+		);
+	}
 };

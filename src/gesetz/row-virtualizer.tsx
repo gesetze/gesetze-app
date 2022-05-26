@@ -1,3 +1,4 @@
+import { width } from "@mui/system";
 import { MutableRefObject, useEffect, useRef } from "react";
 import { Virtuoso, VirtuosoHandle } from "react-virtuoso";
 import { Norm } from "./modals";
@@ -14,10 +15,7 @@ export const RowVirtualizerDynamic = ({
 	useEffect(() => {
 		const match = rows.findIndex(({ index }) => index === normIndex);
 		if (match !== -1) {
-			virtuosoRef.current?.scrollToIndex({
-				index: match,
-				offset: -32,
-			});
+			virtuosoRef.current?.scrollToIndex(match);
 		}
 	}, [normIndex, rows]);
 
@@ -30,15 +28,21 @@ export const RowVirtualizerDynamic = ({
 		startNormIndex = 0;
 	}
 	return (
-		<Virtuoso
-			ref={virtuosoRef}
-			initialTopMostItemIndex={{
-				index: startNormIndex,
-				offset: -32,
+		<div
+			style={{
+				width: "100%",
+				maxWidth: "47em",
+				marginLeft: "auto",
+				marginRight: "auto",
 			}}
-			useWindowScroll
-			data={rows}
-			itemContent={(index, item) => <NormView data={item}></NormView>}
-		/>
+		>
+			<Virtuoso
+				ref={virtuosoRef}
+				initialTopMostItemIndex={startNormIndex}
+				useWindowScroll
+				data={rows}
+				itemContent={(index, item) => <NormView data={item}></NormView>}
+			/>
+		</div>
 	);
 };

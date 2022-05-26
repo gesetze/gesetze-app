@@ -1,16 +1,24 @@
 import { AppBar, IconButton, InputBase, Paper, Toolbar } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
-import { ChangeEvent } from "react";
+import { ChangeEvent, KeyboardEvent } from "react";
 
 export const SearchBar = ({
 	searchQuery = "",
 	onQueryChange,
+	onExecuteQuery,
 }: {
 	searchQuery: string;
-	onQueryChange: (quer: string) => any;
+	onQueryChange: (query: string) => any;
+	onExecuteQuery: () => any;
 }) => {
+	const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+		if (event.code === "Enter" || event.code === "NumpadEnter") {
+			onExecuteQuery();
+		}
+	};
+
 	return (
-		<AppBar position="fixed">
+		<AppBar position="sticky">
 			<Toolbar style={{ justifyContent: "center" }}>
 				<Paper
 					sx={{
@@ -18,7 +26,8 @@ export const SearchBar = ({
 						display: "flex",
 						alignItems: "center",
 						width: "100%",
-						maxWidth: "30em ",
+						maxWidth: "45em",
+						height: "32px",
 					}}
 				>
 					<InputBase
@@ -28,6 +37,7 @@ export const SearchBar = ({
 						onChange={(e: ChangeEvent<HTMLInputElement>) =>
 							onQueryChange(e.target.value)
 						}
+						onKeyUp={handleKeyDown}
 					/>
 					<IconButton type="submit" sx={{ p: "10px" }} aria-label="search">
 						<SearchIcon />
