@@ -39,7 +39,12 @@ export const SearchBar = ({
 						}
 						onKeyUp={handleKeyDown}
 					/>
-					<IconButton type="submit" sx={{ p: "10px" }} aria-label="search">
+					<IconButton
+						type="submit"
+						sx={{ p: "10px" }}
+						aria-label="search"
+						onClick={() => onExecuteQuery()}
+					>
 						<SearchIcon />
 					</IconButton>
 				</Paper>
