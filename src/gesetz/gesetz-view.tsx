@@ -1,5 +1,6 @@
 import { Skeleton } from "@mui/material";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { RowVirtualizerDynamic } from "./row-virtualizer";
 import { SearchBar } from "./search-bar";
 import { formatQuery, parseSearchQuery } from "./search-query-parser";
@@ -14,29 +15,31 @@ function getData(gesetzIndex: string) {
 }
 
 export function GesetzView() {
-	const [tempQuery, setTempQuery] = useState("1000 BGB");
-	const [query, setQuery] = useState("1000 BGB");
+	const [tempQuery, setTempQuery] = useState("");
 	const [normIndex, setNormIndex] = useState("");
 	const [gesetzId, setGesetzId] = useState("");
+	const [searchParams, setSearchParams] = useSearchParams();
 
 	useEffect(() => {
-		const queryObj = parseSearchQuery(query);
+		const queryObj = parseSearchQuery(searchParams.get("q") || "");
 		console.log(queryObj);
 		if (queryObj) {
 			// set gesetzId if not set
 			queryObj.gesetzId = queryObj.gesetzId || gesetzId;
 			setNormIndex(queryObj.normId || "");
 			setGesetzId(queryObj.gesetzId);
-			setTempQuery(formatQuery(queryObj));
+			const formattedQuery = formatQuery(queryObj);
+			setTempQuery(formattedQuery);
+			setSearchParams({ q: formattedQuery });
 		}
-	}, [query]);
+	}, [searchParams]);
 
 	return (
 		<div>
 			<SearchBar
 				onQueryChange={setTempQuery}
 				searchQuery={tempQuery}
-				onExecuteQuery={() => setQuery(tempQuery)}
+				onExecuteQuery={() => setSearchParams({ q: tempQuery })}
 			/>
 			<Gesetz normIndex={normIndex} gesetzIndex={gesetzId} />
 		</div>

@@ -53,7 +53,6 @@ export function parseSearchQuery(query: string): SearchQuery | null {
 export function formatQuery(query: SearchQuery): string {
     if (query.lastElement === "gesetz") {
         if (!!query.normId) {
-            console.log(query.normId, typeof query.normId, !!query.normId)
             return `${query.normId} ${query.gesetzId}`
         } else {
             return query.gesetzId || '';
