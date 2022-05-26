@@ -3,7 +3,13 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { RowVirtualizerDynamic } from "./row-virtualizer";
 import { SearchBar } from "./search-bar";
-import { formatQuery, parseSearchQuery } from "./search-query-parser";
+import {
+	formatQuery,
+	parseSearchQuery,
+	SearchQuery,
+} from "./search-query-parser";
+import { useDebounce } from "usehooks-ts";
+import { Norm } from "./modals";
 
 function getData(gesetzIndex: string) {
 	return fetch(`data/${gesetzIndex}.json`, {
@@ -16,23 +22,34 @@ function getData(gesetzIndex: string) {
 
 export function GesetzView() {
 	const [tempQuery, setTempQuery] = useState("");
-	const [normIndex, setNormIndex] = useState("");
-	const [gesetzId, setGesetzId] = useState("");
+	const [queryObj, setQueryObj] = useState<SearchQuery | null>();
+	const [topNormIdDisplayed, setTopNormIdDisplayed] = useState<string>("");
+	const topNormIdDisplayedDebounced = useDebounce<string>(
+		topNormIdDisplayed,
+		500
+	);
 	const [searchParams, setSearchParams] = useSearchParams();
 
 	useEffect(() => {
-		const queryObj = parseSearchQuery(searchParams.get("q") || "");
-		console.log(queryObj);
-		if (queryObj) {
+		const newQueryObj = parseSearchQuery(searchParams.get("q") || "");
+		console.log(newQueryObj);
+		if (newQueryObj) {
 			// set gesetzId if not set
-			queryObj.gesetzId = queryObj.gesetzId || gesetzId;
-			setNormIndex(queryObj.normId || "");
-			setGesetzId(queryObj.gesetzId);
-			const formattedQuery = formatQuery(queryObj);
+			newQueryObj.gesetzId = newQueryObj.gesetzId || queryObj?.gesetzId;
+			setQueryObj(newQueryObj);
+			const formattedQuery = formatQuery(newQueryObj);
 			setTempQuery(formattedQuery);
 			setSearchParams({ q: formattedQuery });
 		}
 	}, [searchParams]);
+
+	useEffect(() => {
+		if (queryObj && topNormIdDisplayedDebounced) {
+			const tempQueryObj = { ...queryObj, normId: topNormIdDisplayedDebounced };
+			console.log(queryObj, tempQueryObj, formatQuery(tempQueryObj));
+			setTempQuery(formatQuery(tempQueryObj));
+		}
+	}, [topNormIdDisplayedDebounced]);
 
 	return (
 		<div>
@@ -41,7 +58,11 @@ export function GesetzView() {
 				searchQuery={tempQuery}
 				onExecuteQuery={() => setSearchParams({ q: tempQuery })}
 			/>
-			<Gesetz normIndex={normIndex} gesetzIndex={gesetzId} />
+			<Gesetz
+				normIndex={queryObj?.normId || ""}
+				gesetzIndex={queryObj?.gesetzId || ""}
+				onTopNormIdChange={setTopNormIdDisplayed}
+			/>
 		</div>
 	);
 }
@@ -49,11 +70,13 @@ export function GesetzView() {
 export const Gesetz = ({
 	normIndex,
 	gesetzIndex,
+	onTopNormIdChange,
 }: {
 	normIndex: string;
 	gesetzIndex: string;
+	onTopNormIdChange: (normId: string) => any;
 }) => {
-	const [data, setData] = useState([]);
+	const [data, setData] = useState<Norm[]>([]);
 	useEffect(() => {
 		if (gesetzIndex) {
 			getData(gesetzIndex.toLowerCase()).then((d) => setData(d));
@@ -63,7 +86,13 @@ export const Gesetz = ({
 	}, [gesetzIndex]);
 
 	if (data) {
-		return <RowVirtualizerDynamic rows={data} normIndex={normIndex} />;
+		return (
+			<RowVirtualizerDynamic
+				rows={data}
+				normIndex={normIndex}
+				onTopIndexChange={(idx) => onTopNormIdChange(data[idx]?.index)}
+			/>
+		);
 	} else {
 		return (
 			<div style={{ margin: "2em" }}>

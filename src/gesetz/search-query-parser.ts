@@ -14,7 +14,7 @@ function cleanNormQuery(query: string) {
     return query.trim().toLowerCase();
 }
 
-interface SearchQuery {
+export interface SearchQuery {
     gesetzId?: string;
     normId?: string;
     lastElement: 'gesetz' | 'norm';

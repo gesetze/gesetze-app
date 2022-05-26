@@ -18,7 +18,7 @@ export const SearchBar = ({
 	};
 
 	return (
-		<AppBar position="sticky">
+		<AppBar position="fixed">
 			<Toolbar style={{ justifyContent: "center" }}>
 				<Paper
 					sx={{
