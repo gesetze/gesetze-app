@@ -1,5 +1,9 @@
 import { MutableRefObject, useEffect, useRef, useState } from "react";
-import { Virtuoso, VirtuosoHandle } from "react-virtuoso";
+import {
+	FlatIndexLocationWithAlign,
+	Virtuoso,
+	VirtuosoHandle,
+} from "react-virtuoso";
 import { Norm } from "./modals";
 import { NormView } from "./norm-view";
 
@@ -17,7 +21,24 @@ export const RowVirtualizerDynamic = ({
 	useEffect(() => {
 		const match = rows.findIndex(({ index }) => index === normIndex);
 		if (match !== -1) {
-			virtuosoRef.current?.scrollToIndex(match);
+			const scrollWithAlignment: FlatIndexLocationWithAlign = {
+				index: match,
+				align: "start",
+				offset: -32,
+			};
+			virtuosoRef.current?.scrollToIndex(scrollWithAlignment);
+			setTimeout(() => {
+				const elem: any = document.querySelectorAll(
+					`[data-item-index="${match}"]`
+				)[0];
+				window.scrollTo({ top: elem.offsetTop - 74 });
+			});
+			setTimeout(() => {
+				const elem: any = document.querySelectorAll(
+					`[data-item-index="${match}"]`
+				)[0];
+				window.scrollTo({ top: elem.offsetTop - 74 });
+			}, 500);
 		}
 	}, [normIndex, rows]);
 
