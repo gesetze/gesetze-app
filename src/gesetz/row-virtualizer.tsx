@@ -28,16 +28,7 @@ export const RowVirtualizerDynamic = ({
 			};
 			virtuosoRef.current?.scrollToIndex(scrollWithAlignment);
 			setTimeout(() => {
-				const elem: any = document.querySelectorAll(
-					`[data-item-index="${match}"]`
-				)[0];
-				window.scrollTo({ top: elem.offsetTop - 74 });
-			});
-			setTimeout(() => {
-				const elem: any = document.querySelectorAll(
-					`[data-item-index="${match}"]`
-				)[0];
-				window.scrollTo({ top: elem.offsetTop - 74 });
+				virtuosoRef.current?.scrollToIndex(scrollWithAlignment);
 			}, 500);
 		}
 	}, [normIndex, rows]);

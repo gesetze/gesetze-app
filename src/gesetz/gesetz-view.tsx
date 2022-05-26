@@ -30,23 +30,26 @@ export function GesetzView() {
 	);
 	const [searchParams, setSearchParams] = useSearchParams();
 
-	useEffect(() => {
-		const newQueryObj = parseSearchQuery(searchParams.get("q") || "");
-		console.log(newQueryObj);
+	function executeSearch(query: string) {
+		const newQueryObj = parseSearchQuery(query);
 		if (newQueryObj) {
 			// set gesetzId if not set
 			newQueryObj.gesetzId = newQueryObj.gesetzId || queryObj?.gesetzId;
+			setQueryObj(null);
 			setQueryObj(newQueryObj);
 			const formattedQuery = formatQuery(newQueryObj);
 			setTempQuery(formattedQuery);
 			setSearchParams({ q: formattedQuery });
 		}
-	}, [searchParams]);
+	}
+
+	useEffect(() => {
+		executeSearch(searchParams.get("q") || "");
+	}, []);
 
 	useEffect(() => {
 		if (queryObj && topNormIdDisplayedDebounced) {
 			const tempQueryObj = { ...queryObj, normId: topNormIdDisplayedDebounced };
-			console.log(queryObj, tempQueryObj, formatQuery(tempQueryObj));
 			setTempQuery(formatQuery(tempQueryObj));
 		}
 	}, [topNormIdDisplayedDebounced]);
@@ -56,40 +59,36 @@ export function GesetzView() {
 			<SearchBar
 				onQueryChange={setTempQuery}
 				searchQuery={tempQuery}
-				onExecuteQuery={() => setSearchParams({ q: tempQuery })}
+				onExecuteQuery={() => executeSearch(tempQuery)}
 			/>
-			<Gesetz
-				normIndex={queryObj?.normId || ""}
-				gesetzIndex={queryObj?.gesetzId || ""}
-				onTopNormIdChange={setTopNormIdDisplayed}
-			/>
+			{queryObj && (
+				<Gesetz queryObj={queryObj} onTopNormIdChange={setTopNormIdDisplayed} />
+			)}
 		</div>
 	);
 }
 
 export const Gesetz = ({
-	normIndex,
-	gesetzIndex,
+	queryObj,
 	onTopNormIdChange,
 }: {
-	normIndex: string;
-	gesetzIndex: string;
+	queryObj: SearchQuery;
 	onTopNormIdChange: (normId: string) => any;
 }) => {
 	const [data, setData] = useState<Norm[]>([]);
 	useEffect(() => {
-		if (gesetzIndex) {
-			getData(gesetzIndex.toLowerCase()).then((d) => setData(d));
+		if (queryObj?.gesetzId) {
+			getData(queryObj?.gesetzId.toLowerCase()).then((d) => setData(d));
 		} else {
 			setData([]);
 		}
-	}, [gesetzIndex]);
+	}, [queryObj?.gesetzId]);
 
 	if (data) {
 		return (
 			<RowVirtualizerDynamic
 				rows={data}
-				normIndex={normIndex}
+				normIndex={queryObj?.normId}
 				onTopIndexChange={(idx) => onTopNormIdChange(data[idx]?.index)}
 			/>
 		);
