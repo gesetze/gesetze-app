@@ -37,10 +37,10 @@ def get_gesetz(abk):
                 etree.tostring(f, encoding="utf8") for f in norm_children
             ).decode("utf8")
 
-        for metadatenitemtag in ["enbez", "amtabk", "jurabk", "titel"]:
-            text = get_nested_content(norm, ["metadaten", metadatenitemtag])
+        for metadatenitemtag in [["enbez"], ["amtabk"], ["jurabk"], ["titel"], ['gliederungseinheit', 'gliederungsbez'], ['gliederungseinheit', 'gliederungstitel']]:
+            text = get_nested_content(norm, ["metadaten", *metadatenitemtag])
             if text:
-                norm_data[metadatenitemtag] = text
+                norm_data[metadatenitemtag[-1]] = text
 
         if "enbez" in norm_data:
             if norm_data["enbez"].startswith("§ "):
