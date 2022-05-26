@@ -56,7 +56,7 @@ export const Gesetz = ({
 	const [data, setData] = useState([]);
 	useEffect(() => {
 		if (gesetzIndex) {
-			getData(gesetzIndex).then((d) => setData(d));
+			getData(gesetzIndex.toLowerCase()).then((d) => setData(d));
 		} else {
 			setData([]);
 		}
