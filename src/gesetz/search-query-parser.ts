@@ -21,6 +21,10 @@ export interface SearchQuery {
 }
 
 export function parseSearchQuery(query: string): SearchQuery | null {
+    if (!query?.length) {
+        return null;
+    }
+
     var reg = /^(Art\.|Art(ikel|icle)?(?![A-Za-zöäß])|§+)\s*/i;
     const splitted = query.trim().replace(reg, "").split(" ");
     if (splitted.length === 1) {

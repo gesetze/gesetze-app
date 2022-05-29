@@ -9,53 +9,73 @@ import { NormView } from "./norm-view";
 
 export const RowVirtualizerDynamic = ({
 	rows,
-	normIndex,
+	normId,
 	onTopIndexChange,
 }: {
 	rows: Norm[];
-	normIndex: any;
+	normId: string;
 	onTopIndexChange: (index: number) => any;
 }) => {
 	const virtuosoRef: MutableRefObject<VirtuosoHandle | null> = useRef(null);
+	const [waitForScrollEnd, setWaitForScrollEnd] = useState<
+		boolean | "inProgress"
+	>(false);
+	const [isScrolling, setIsScrolling] = useState(false);
+	const [normIndex, setNormIndex] = useState(-1);
 
 	useEffect(() => {
-		const match = rows.findIndex(({ index }) => index === normIndex);
-		if (match !== -1) {
-			const scrollWithAlignment: FlatIndexLocationWithAlign = {
-				index: match,
-				align: "start",
-				offset: -32,
-			};
-			virtuosoRef.current?.scrollToIndex(scrollWithAlignment);
-			setTimeout(() => {
-				virtuosoRef.current?.scrollToIndex(scrollWithAlignment);
-			}, 500);
+		setNormIndex(rows.findIndex(({ index }) => index === normId));
+	}, [rows, normId]);
+
+	function scrollTo() {
+		console.log("ScrollTo", normIndex);
+		const scrollWithAlignment: FlatIndexLocationWithAlign = {
+			index: normIndex,
+			offset: -32,
+		};
+		setWaitForScrollEnd(true);
+		virtuosoRef.current?.scrollToIndex(scrollWithAlignment);
+	}
+
+	useEffect(() => {
+		if (rows?.length) {
+			if (normIndex !== -1) {
+				scrollTo();
+			}
 		}
 	}, [normIndex, rows]);
+
+	function customScrollTo() {
+		const elem: any = document.querySelector(
+			`[data-item-index="${normIndex}"]`
+		);
+		if (elem) {
+			window.scrollTo({ top: elem.offsetTop - 70 });
+		} else {
+			scrollTo();
+		}
+	}
+
+	useEffect(() => {
+		if (waitForScrollEnd === true && isScrolling) {
+			setWaitForScrollEnd("inProgress");
+		} else if (waitForScrollEnd === "inProgress" && !isScrolling) {
+			setWaitForScrollEnd(false);
+			customScrollTo();
+		}
+	}, [isScrolling, waitForScrollEnd, normIndex]);
 
 	if (!rows?.length) {
 		return <></>;
 	}
 
-	let startNormIndex = rows.findIndex(({ index }) => index === normIndex);
-	if (startNormIndex === -1) {
-		startNormIndex = 0;
-	}
-
-	function handleRangeChange(range: { startIndex: number; endIndex: number }) {
-		if (range.startIndex + 1 <= range.endIndex) {
-			onTopIndexChange(range.startIndex + 1);
-		} else {
-			onTopIndexChange(range.startIndex);
-		}
-	}
-
-	function handleIsScrollingChange(isScrolling: boolean) {
-		console.log(isScrolling);
+	function handleIsScrollingChange(scrolling: boolean) {
+		console.log(scrolling);
+		setIsScrolling(scrolling);
 	}
 
 	function handleTotalListHeightChanged(height: number) {
-		console.log("height", height);
+		!isScrolling && customScrollTo();
 	}
 
 	return (
@@ -69,12 +89,13 @@ export const RowVirtualizerDynamic = ({
 		>
 			<Virtuoso
 				ref={virtuosoRef}
-				initialTopMostItemIndex={startNormIndex}
+				initialTopMostItemIndex={{
+					index: normIndex,
+					offset: -32,
+				}}
 				useWindowScroll
 				data={rows}
 				itemContent={(index, item) => <NormView data={item}></NormView>}
-				increaseViewportBy={60}
-				rangeChanged={handleRangeChange}
 				isScrolling={handleIsScrollingChange}
 				totalListHeightChanged={handleTotalListHeightChanged}
 			/>

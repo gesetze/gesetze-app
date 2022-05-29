@@ -8,7 +8,6 @@ import {
 	parseSearchQuery,
 	SearchQuery,
 } from "./search-query-parser";
-import { useDebounce } from "usehooks-ts";
 import { Norm } from "./modals";
 
 function getData(gesetzIndex: string) {
@@ -21,13 +20,9 @@ function getData(gesetzIndex: string) {
 }
 
 export function GesetzView() {
-	const [tempQuery, setTempQuery] = useState("");
-	const [queryObj, setQueryObj] = useState<SearchQuery | null>();
+	const [inputQuery, setInputQuery] = useState("");
+	const [queryObj, setQueryObj] = useState<SearchQuery | null>(null);
 	const [topNormIdDisplayed, setTopNormIdDisplayed] = useState<string>("");
-	const topNormIdDisplayedDebounced = useDebounce<string>(
-		topNormIdDisplayed,
-		500
-	);
 	const [searchParams, setSearchParams] = useSearchParams();
 
 	function executeSearch(query: string) {
@@ -38,7 +33,7 @@ export function GesetzView() {
 			setQueryObj(null);
 			setQueryObj(newQueryObj);
 			const formattedQuery = formatQuery(newQueryObj);
-			setTempQuery(formattedQuery);
+			setInputQuery(formattedQuery);
 			setSearchParams({ q: formattedQuery });
 		}
 	}
@@ -48,22 +43,19 @@ export function GesetzView() {
 	}, []);
 
 	useEffect(() => {
-		if (queryObj && topNormIdDisplayedDebounced) {
-			const tempQueryObj = { ...queryObj, normId: topNormIdDisplayedDebounced };
-			setTempQuery(formatQuery(tempQueryObj));
+		if (queryObj) {
+			setInputQuery(formatQuery({ ...queryObj, normId: topNormIdDisplayed }));
 		}
-	}, [topNormIdDisplayedDebounced]);
+	}, [topNormIdDisplayed]);
 
 	return (
 		<div>
 			<SearchBar
-				onQueryChange={setTempQuery}
-				searchQuery={tempQuery}
-				onExecuteQuery={() => executeSearch(tempQuery)}
+				onQueryChange={setInputQuery}
+				searchQuery={inputQuery}
+				onExecuteQuery={() => executeSearch(inputQuery)}
 			/>
-			{queryObj && (
-				<Gesetz queryObj={queryObj} onTopNormIdChange={setTopNormIdDisplayed} />
-			)}
+			<Gesetz queryObj={queryObj} onTopNormIdChange={setTopNormIdDisplayed} />
 		</div>
 	);
 }
@@ -72,7 +64,7 @@ export const Gesetz = ({
 	queryObj,
 	onTopNormIdChange,
 }: {
-	queryObj: SearchQuery;
+	queryObj: SearchQuery | null;
 	onTopNormIdChange: (normId: string) => any;
 }) => {
 	const [data, setData] = useState<Norm[]>([]);
@@ -84,23 +76,23 @@ export const Gesetz = ({
 		}
 	}, [queryObj?.gesetzId]);
 
-	if (data) {
-		return (
-			<RowVirtualizerDynamic
-				rows={data}
-				normIndex={queryObj?.normId}
-				onTopIndexChange={(idx) => onTopNormIdChange(data[idx]?.index)}
-			/>
-		);
-	} else {
-		return (
-			<div style={{ margin: "2em" }}>
-				<Skeleton />
-				<Skeleton />
-				<Skeleton />
-				<Skeleton />
-				<Skeleton />
-			</div>
-		);
-	}
+	// if (data?.length) {
+	return (
+		<RowVirtualizerDynamic
+			rows={data}
+			normId={queryObj?.normId || ""}
+			onTopIndexChange={(idx) => onTopNormIdChange(data[idx]?.index)}
+		/>
+	);
+	// } else {
+	// 	return (
+	// 		<div style={{ margin: "2em" }}>
+	// 			<Skeleton />
+	// 			<Skeleton />
+	// 			<Skeleton />
+	// 			<Skeleton />
+	// 			<Skeleton />
+	// 		</div>
+	// 	);
+	// }
 };
