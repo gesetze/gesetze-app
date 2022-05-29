@@ -61,6 +61,14 @@ export const SearchBar = ({
 						}
 						onKeyUp={handleKeyDown}
 						autoFocus={true}
+						autoCorrect={"off"}
+						autoComplete={"off"}
+						autoCapitalize={"off"}
+						inputProps={{
+							autocomplete: "off",
+							spellcheck: "false",
+							autocorrect: "off",
+						}}
 					/>
 					<IconButton
 						type="submit"
