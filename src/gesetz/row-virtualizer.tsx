@@ -28,13 +28,36 @@ export const RowVirtualizerDynamic = ({
 	}, [rows, normId]);
 
 	function scrollTo() {
-		console.log("ScrollToFn", normIndex);
 		const scrollWithAlignment: FlatIndexLocationWithAlign = {
 			index: normIndex,
 			offset: -32,
 		};
 		setWaitForScrollEnd(true);
 		virtuosoRef.current?.scrollToIndex(scrollWithAlignment);
+	}
+
+	function customScrollTo() {
+		const elem: HTMLElement | null = document.querySelector(
+			`[data-item-index="${normIndex}"]`
+		);
+		if (elem) {
+			window.scrollTo({ top: elem.offsetTop - 70 });
+		} else {
+			scrollTo();
+		}
+	}
+
+	function updateTopIndex() {
+		Array.from(
+			document.querySelectorAll<HTMLElement>("[data-item-index]")
+		).every((elem) => {
+			if (elem.getBoundingClientRect().top + elem.offsetHeight >= 64) {
+				onTopIndexChange(Number(elem.getAttribute("data-item-index")));
+				return false;
+			} else {
+				return true;
+			}
+		});
 	}
 
 	useEffect(() => {
@@ -44,17 +67,6 @@ export const RowVirtualizerDynamic = ({
 			}
 		}
 	}, [normIndex, rows]);
-
-	function customScrollTo() {
-		const elem: any = document.querySelector(
-			`[data-item-index="${normIndex}"]`
-		);
-		if (elem) {
-			window.scrollTo({ top: elem.offsetTop - 70 });
-		} else {
-			scrollTo();
-		}
-	}
 
 	useEffect(() => {
 		if (waitForScrollEnd === true && isScrolling) {
@@ -70,12 +82,19 @@ export const RowVirtualizerDynamic = ({
 	}
 
 	function handleIsScrollingChange(scrolling: boolean) {
-		console.log(scrolling);
 		setIsScrolling(scrolling);
+		if (!scrolling) {
+			updateTopIndex();
+		}
 	}
 
 	function handleTotalListHeightChanged(height: number) {
 		!isScrolling && waitForScrollEnd && customScrollTo();
+		!waitForScrollEnd && updateTopIndex();
+	}
+
+	function handleRangeChanged() {
+		!waitForScrollEnd && updateTopIndex();
 	}
 
 	return (
@@ -98,6 +117,9 @@ export const RowVirtualizerDynamic = ({
 				itemContent={(index, item) => <NormView data={item}></NormView>}
 				isScrolling={handleIsScrollingChange}
 				totalListHeightChanged={handleTotalListHeightChanged}
+				rangeChanged={handleRangeChanged}
+				defaultItemHeight={300}
+				overscan={5000}
 			/>
 		</div>
 	);
