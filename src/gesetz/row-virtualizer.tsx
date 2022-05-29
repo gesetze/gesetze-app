@@ -28,7 +28,7 @@ export const RowVirtualizerDynamic = ({
 	}, [rows, normId]);
 
 	function scrollTo() {
-		console.log("ScrollTo", normIndex);
+		console.log("ScrollToFn", normIndex);
 		const scrollWithAlignment: FlatIndexLocationWithAlign = {
 			index: normIndex,
 			offset: -32,
@@ -63,7 +63,7 @@ export const RowVirtualizerDynamic = ({
 			setWaitForScrollEnd(false);
 			customScrollTo();
 		}
-	}, [isScrolling, waitForScrollEnd, normIndex]);
+	}, [isScrolling, waitForScrollEnd]);
 
 	if (!rows?.length) {
 		return <></>;
@@ -75,7 +75,7 @@ export const RowVirtualizerDynamic = ({
 	}
 
 	function handleTotalListHeightChanged(height: number) {
-		!isScrolling && customScrollTo();
+		!isScrolling && waitForScrollEnd && customScrollTo();
 	}
 
 	return (
