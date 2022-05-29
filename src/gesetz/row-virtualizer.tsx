@@ -61,7 +61,7 @@ export const RowVirtualizerDynamic = ({
 			setWaitForScrollEnd("inProgress");
 		} else if (waitForScrollEnd === "inProgress" && !isScrolling) {
 			setWaitForScrollEnd(false);
-			customScrollTo();
+			setTimeout(customScrollTo, 500);
 		}
 	}, [isScrolling, waitForScrollEnd]);
 
