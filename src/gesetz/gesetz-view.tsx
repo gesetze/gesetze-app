@@ -1,7 +1,7 @@
 import { Skeleton } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { RowVirtualizerDynamic } from "./row-virtualizer";
+import { RowVirtualizer } from "./row-virtualizer";
 import { SearchBar } from "./search-bar";
 import {
 	formatQuery,
@@ -78,7 +78,7 @@ export const Gesetz = ({
 
 	// if (data?.length) {
 	return (
-		<RowVirtualizerDynamic
+		<RowVirtualizer
 			rows={data}
 			normId={queryObj?.normId || ""}
 			onTopIndexChange={(idx) => onTopNormIdChange(data[idx]?.index)}

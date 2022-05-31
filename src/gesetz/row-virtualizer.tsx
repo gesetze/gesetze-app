@@ -7,7 +7,7 @@ import {
 import { Norm } from "./modals";
 import { NormView } from "./norm-view";
 
-export const RowVirtualizerDynamic = ({
+export const RowVirtualizer = ({
 	rows,
 	normId,
 	onTopIndexChange,
@@ -16,88 +16,47 @@ export const RowVirtualizerDynamic = ({
 	normId: string;
 	onTopIndexChange: (index: number) => any;
 }) => {
-	const virtuosoRef: MutableRefObject<VirtuosoHandle | null> = useRef(null);
-	const [waitForScrollEnd, setWaitForScrollEnd] = useState<
-		boolean | "inProgress"
-	>(false);
-	const [isScrolling, setIsScrolling] = useState(false);
 	const [normIndex, setNormIndex] = useState(-1);
 
 	useEffect(() => {
 		setNormIndex(rows.findIndex(({ index }) => index === normId));
 	}, [rows, normId]);
 
-	function scrollTo() {
-		console.log("scrollTo");
-		const scrollWithAlignment: FlatIndexLocationWithAlign = {
-			index: normIndex,
-			offset: -32,
-		};
-		setWaitForScrollEnd(true);
-		virtuosoRef.current?.scrollToIndex(scrollWithAlignment);
-	}
-
-	function customScrollTo() {
-		console.log("customScrollTo");
-		const elem: HTMLElement | null = document.querySelector(
-			`[data-item-index="${normIndex}"]`
-		);
+	useEffect(() => {
+		const elem = document.querySelector<HTMLElement>(`[id=row-${normIndex}]`);
 		if (elem) {
-			window.scrollTo({ top: elem.offsetTop - 70 });
-		} else {
-			scrollTo();
+			elem.scrollIntoView({ block: "start" });
+			window.scrollBy({ top: -64 });
 		}
-	}
-
-	function updateTopIndex() {
-		Array.from(
-			document.querySelectorAll<HTMLElement>("[data-item-index]")
-		).every((elem) => {
-			if (elem.getBoundingClientRect().top + elem.offsetHeight >= 64) {
-				onTopIndexChange(Number(elem.getAttribute("data-item-index")));
-				return false;
-			} else {
-				return true;
-			}
-		});
-	}
+	}, [normIndex]);
 
 	useEffect(() => {
-		if (rows?.length) {
-			if (normIndex !== -1) {
-				scrollTo();
+		let ticking = false;
+		const onScroll = () => {
+			if (!ticking) {
+				ticking = true;
+				setTimeout(() => {
+					Array.from(
+						document.querySelectorAll<HTMLElement>("[id^=row-]")
+					).every((elem) => {
+						if (elem.getBoundingClientRect().top + elem.offsetHeight >= 64) {
+							const newTopIndex = Number(
+								elem.getAttribute("id")?.replace("row-", "")
+							);
+							onTopIndexChange(newTopIndex);
+							return false;
+						} else {
+							return true;
+						}
+					});
+					ticking = false;
+				}, 500);
 			}
-		}
-	}, [normIndex, rows]);
-
-	useEffect(() => {
-		if (waitForScrollEnd === true && isScrolling) {
-			setWaitForScrollEnd("inProgress");
-		} else if (waitForScrollEnd === "inProgress" && !isScrolling) {
-			setWaitForScrollEnd(false);
-			setTimeout(customScrollTo, 500);
-		}
-	}, [isScrolling, waitForScrollEnd]);
-
-	if (!rows?.length) {
-		return <></>;
-	}
-
-	function handleIsScrollingChange(scrolling: boolean) {
-		setIsScrolling(scrolling);
-		if (!scrolling) {
-			updateTopIndex();
-		}
-	}
-
-	function handleTotalListHeightChanged(height: number) {
-		!isScrolling && waitForScrollEnd && customScrollTo();
-		!waitForScrollEnd && updateTopIndex();
-	}
-
-	function handleRangeChanged() {
-		!waitForScrollEnd && updateTopIndex();
-	}
+		};
+		window.removeEventListener("scroll", onScroll);
+		window.addEventListener("scroll", onScroll, { passive: true });
+		return () => window.removeEventListener("scroll", onScroll);
+	}, [rows]);
 
 	return (
 		<div
@@ -108,21 +67,11 @@ export const RowVirtualizerDynamic = ({
 				marginRight: "auto",
 			}}
 		>
-			<Virtuoso
-				ref={virtuosoRef}
-				initialTopMostItemIndex={{
-					index: normIndex,
-					offset: -32,
-				}}
-				useWindowScroll
-				data={rows}
-				itemContent={(index, item) => <NormView data={item}></NormView>}
-				isScrolling={handleIsScrollingChange}
-				totalListHeightChanged={handleTotalListHeightChanged}
-				rangeChanged={handleRangeChanged}
-				defaultItemHeight={60}
-				overscan={3000}
-			/>
+			{rows.map((row, index) => (
+				<div className="row" id={`row-${index}`} key={index}>
+					<NormView data={row}></NormView>
+				</div>
+			))}
 		</div>
 	);
 };
