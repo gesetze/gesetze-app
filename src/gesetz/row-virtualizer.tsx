@@ -28,6 +28,7 @@ export const RowVirtualizerDynamic = ({
 	}, [rows, normId]);
 
 	function scrollTo() {
+		console.log("scrollTo");
 		const scrollWithAlignment: FlatIndexLocationWithAlign = {
 			index: normIndex,
 			offset: -32,
@@ -37,6 +38,7 @@ export const RowVirtualizerDynamic = ({
 	}
 
 	function customScrollTo() {
+		console.log("customScrollTo");
 		const elem: HTMLElement | null = document.querySelector(
 			`[data-item-index="${normIndex}"]`
 		);
@@ -118,8 +120,8 @@ export const RowVirtualizerDynamic = ({
 				isScrolling={handleIsScrollingChange}
 				totalListHeightChanged={handleTotalListHeightChanged}
 				rangeChanged={handleRangeChanged}
-				defaultItemHeight={300}
-				overscan={5000}
+				defaultItemHeight={60}
+				overscan={3000}
 			/>
 		</div>
 	);

@@ -55,13 +55,11 @@ export function parseSearchQuery(query: string): SearchQuery | null {
 }
 
 export function formatQuery(query: SearchQuery): string {
-    if (query.lastElement === "gesetz") {
-        if (!!query.normId) {
-            return `${query.normId} ${query.gesetzId}`
-        } else {
-            return query.gesetzId || '';
-        }
-    } else {
+    if (query.lastElement === "gesetz" && !!query.normId && !!query.gesetzId) {
+        return `${query.normId} ${query.gesetzId}`
+    } else if (!!query.normId && !!query.gesetzId) {
         return `${query.gesetzId} ${query.normId}`
+    } else {
+        return query.gesetzId || query.normId || '';
     }
 }
