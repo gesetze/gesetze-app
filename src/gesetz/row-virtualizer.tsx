@@ -1,28 +1,78 @@
-import { useEffect, useLayoutEffect, useState } from "react";
+import { Component, createRef, RefObject } from "react";
 import { Norm } from "./modals";
 import { NormView } from "./norm-view";
 
-export const RowVirtualizer = ({
-	rows,
-	normId,
-	onTopIndexChange,
-}: {
+interface RowVirtualizerProps {
 	rows: Norm[];
 	normId: string;
 	onTopIndexChange: (index: number) => any;
-}) => {
-	const [normIndex, setNormIndex] = useState(-1);
-	const [isRendering, setIsRendering] = useState(false);
-	const [renderRangeEnd, setRenderRangeEnd] = useState(0);
+}
 
-	function checkTopIndex() {
+interface RowVirtualizerState {
+	normIndex: number;
+	isRendering: boolean;
+	renderRangeEnd: number;
+}
+
+function range(size: number, startAt: number = 0): ReadonlyArray<number> {
+	return Array.from(Array(size).keys()).map((i) => i + startAt);
+}
+
+export class RowVirtualizer extends Component<
+	RowVirtualizerProps,
+	RowVirtualizerState
+> {
+	ticking = false;
+	rows: { [id: number]: HTMLElement } = {};
+	divElement: RefObject<HTMLDivElement>;
+
+	constructor(props: RowVirtualizerProps) {
+		super(props);
+		this.state = { normIndex: -1, isRendering: false, renderRangeEnd: 0 };
+		this.updateNormIndex();
+		this.divElement = createRef();
+	}
+
+	componentDidUpdate(
+		prevProps: RowVirtualizerProps,
+		prevState: RowVirtualizerState
+	) {
+		if (
+			prevProps.normId !== this.props.normId ||
+			prevProps.rows !== this.props.rows
+		)
+			this.updateNormIndex();
+	}
+
+	updateNormIndex() {
+		const normIndex = this.props.rows.findIndex(
+			({ index }) => index === this.props.normId
+		);
+		this.setState({ normIndex, renderRangeEnd: normIndex + 30 });
+
+		if (this.props.rows?.length && normIndex !== -1)
+			setTimeout(() => {
+				const elem = document.querySelector<HTMLElement>(
+					`[id=row-${normIndex}]`
+				);
+				if (elem) {
+					this.setState({ isRendering: true });
+					elem.scrollIntoView({ block: "start" });
+					window.scrollBy({ top: -64 });
+					this.setState({ isRendering: false });
+				}
+				this.checkTopIndex();
+			});
+	}
+
+	checkTopIndex() {
 		Array.from(document.querySelectorAll<HTMLElement>("[id^=row-]")).every(
 			(elem) => {
 				if (elem.getBoundingClientRect().top + elem.offsetHeight >= 64) {
 					const newTopIndex = Number(
 						elem.getAttribute("id")?.replace("row-", "")
 					);
-					onTopIndexChange(newTopIndex);
+					this.props.onTopIndexChange(newTopIndex);
 					return false;
 				} else {
 					return true;
@@ -31,65 +81,59 @@ export const RowVirtualizer = ({
 		);
 	}
 
-	useEffect(() => {
-		setNormIndex(rows.findIndex(({ index }) => index === normId));
-		setRenderRangeEnd(normIndex + 30);
-	}, [rows, normId]);
-
-	// Scroll
-	useEffect(() => {
-		if (rows?.length && normIndex !== -1)
+	onScroll() {
+		if (!this.ticking && !this.state?.isRendering) {
+			this.ticking = true;
 			setTimeout(() => {
-				const elem = document.querySelector<HTMLElement>(
-					`[id=row-${normIndex}]`
-				);
-				if (elem) {
-					setIsRendering(true);
-					elem.scrollIntoView({ block: "start" });
-					window.scrollBy({ top: -64 });
-					setIsRendering(false);
-				}
-				checkTopIndex();
-			});
-	}, [rows, normIndex]);
+				// this.checkTopIndex();
+				console.log(this.rows);
+				this.ticking = false;
+			}, 500);
+		}
+	}
 
-	// Update onTopIndexChange when scrolling
-	useEffect(() => {
-		let ticking = false;
-		const onScroll = () => {
-			if (!ticking && !isRendering) {
-				ticking = true;
-				setTimeout(() => {
-					checkTopIndex();
-					ticking = false;
-				}, 500);
-			}
-		};
-		window.removeEventListener("scroll", onScroll);
-		window.addEventListener("scroll", onScroll, { passive: true });
-		return () => window.removeEventListener("scroll", onScroll);
-	}, [rows]);
+	componentDidMount() {
+		window.removeEventListener("scroll", () => this.onScroll());
+		window.addEventListener("scroll", () => this.onScroll(), { passive: true });
+	}
 
-	useLayoutEffect(() => {
-		setRenderRangeEnd(normIndex + 30);
-	}, [rows, normIndex]);
+	componentWillUnmount() {
+		window.removeEventListener("scroll", () => this.onScroll());
+	}
 
-	const renderedRows = rows.slice(0, renderRangeEnd);
+	registerRowElement(element: HTMLDivElement | null, index: number) {
+		console.log("Register", index, this.rows[index] === element);
+		element && (this.rows[index] = element);
+	}
 
-	return (
-		<div
-			style={{
-				width: "100%",
-				maxWidth: "47em",
-				marginLeft: "auto",
-				marginRight: "auto",
-			}}
-		>
-			{renderedRows.map((row, index) => (
-				<div className="row" id={`row-${index}`} key={index}>
-					<NormView data={row}></NormView>
-				</div>
-			))}
-		</div>
-	);
-};
+	render() {
+		// this.rows = {};
+		const start = Math.max(0, (this.state?.normIndex || 0) - 10);
+		const end = Math.min(start + 20, this.props.rows?.length || 0);
+		console.log(start, end);
+		const renderedRowsRange = range(end - start, start);
+
+		return (
+			<div
+				ref={this.divElement}
+				style={{
+					width: "100%",
+					maxWidth: "47em",
+					marginLeft: "auto",
+					marginRight: "auto",
+				}}
+			>
+				{renderedRowsRange.map((index) => (
+					<div
+						className="row"
+						id={`row-${index}`}
+						key={index}
+						ref={(e) => this.registerRowElement(e, index)}
+					>
+						<NormView data={this.props.rows[index]}></NormView>
+					</div>
+				))}
+			</div>
+		);
+	}
+}
